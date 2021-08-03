@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<image schemaversion="7.4" name="lava-image" displayname="LAVA Image">
+    <description type="system">
+        <author>Daniel Wagner</author>
+        <contact>dwagner@suse.com</contact>
+        <specification>lava test image</specification>
+    </description>
+    <preferences>
+        <version>1</version>
+        <packagemanager>zypper</packagemanager>
+        <locale>en_US</locale>
+        <keytable>us</keytable>
+        <timezone>Europe/Berlin</timezone>
+        <rpm-excludedocs>true</rpm-excludedocs>
+        <rpm-check-signatures>false</rpm-check-signatures>
+        <bootsplash-theme>bgrt</bootsplash-theme>
+        <bootloader-theme>openSUSE</bootloader-theme>
+	<type image="tbz"/>
+    </preferences>
+    <users>
+        <user password="$1$wYJUgpM5$RXMMeASDc035eX.NbYWFl0" home="/root" name="root" groups="root"/>
+    </users>
+    <repository type="rpm-md">
+        <source path="obsrepositories:/"/>
+    </repository>
+    <packages type="image">
+      <package name="patterns-base-minimal_base"/>
+      <package name="systemd-network"/>
+      <package name="bind-utils"/>
+      <package name="iputils"/>
+      <package name="tar"/>
+      <package name="openssh"/>
+      <package name="iproute2"/>
+      <package name="timezone"/>
+      <package name="net-tools-deprecated"/>
+      <package name="lsb-release"/>
+      <package name="rt-tests"/>
+      <package name="curl"/>
+      <package name="kexec-tools"/>
+      <package name="stress-ng"/>
+    </packages>
+    <packages type="delete">
+      <package name="wicked-service"/>
+      <package name="wicked"/>
+      <package name="dhcp-client"/>
+      <package name="glibc-locale"/>
+    </packages>
+    <packages type="bootstrap">
+      <package name="udev"/>
+      <package name="filesystem"/>
+      <package name="glibc-locale"/>
+      <package name="cracklib-dict-full"/>
+      <package name="ca-certificates"/>
+      <package name="ca-certificates-mozilla"/>
+      <package name="openSUSE-release"/>
+      <package name="zypper"/>
+      <package name="dracut"/>
+      <package name="gawk"/>
+      <package name="shadow"/>
+    </packages>
+</image>
