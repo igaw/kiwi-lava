@@ -39,6 +39,16 @@
       <package name="curl"/>
       <package name="kexec-tools"/>
       <package name="stress-ng"/>
+      <!-- The 2022 base pattern pulled these in, today's doesn't. -->
+      <!-- rtla: rtla-osnoise/rtla-timerlat; procps: ps, which the test
+           definitions' sh-test-lib uses to stop the background load;
+           diffutils: sh-test-lib's dmesg diff -->
+      <package name="rtla"/>
+      <package name="procps"/>
+      <package name="diffutils"/>
+      <!-- split out of systemd: config.sh enables it, and resolv.conf
+           links to its stub -->
+      <package name="systemd-resolved"/>
     </packages>
     <packages type="delete">
       <package name="wicked-service"/>
