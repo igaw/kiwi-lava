@@ -32,6 +32,7 @@ options:
              boards before publishing: root@lava.lan:/srv/www/htdocs/artifacts/rootfs/
   -k         keep KIWI's build root and log in DIR/TAG/work-<arch>/
   -n         dry run: print what would be done
+  -R         without the patched rtla repository (stock Tumbleweed rtla)
   -h         this help
 EOF
 }
@@ -42,8 +43,9 @@ engine=""
 copy_to=""
 keep=0
 dry=0
+rtla_repo=1
 
-while getopts "o:t:e:i:c:knh" opt; do
+while getopts "o:t:e:i:c:knRh" opt; do
 	case "$opt" in
 	o) outdir=$OPTARG ;;
 	t) tag=$OPTARG ;;
@@ -52,6 +54,7 @@ while getopts "o:t:e:i:c:knh" opt; do
 	c) copy_to=$OPTARG ;;
 	k) keep=1 ;;
 	n) dry=1 ;;
+	R) rtla_repo=0 ;;
 	h) usage; exit 0 ;;
 	*) usage >&2; exit 2 ;;
 	esac
@@ -82,6 +85,23 @@ repo_of() {
 	aarch64) echo https://download.opensuse.org/ports/aarch64/tumbleweed/repo/oss/ ;;
 	armv7l)  echo https://download.opensuse.org/ports/armv7hl/tumbleweed/repo/oss/ ;;
 	esac
+}
+# Temporary, until upstream rtla locks the memory of timerlat's user-space
+# threads: rtla with that patch from OBS (home:wagi:branches:benchmark,
+# a branch of benchmark/rtla). Without it timerlat -u counts page faults
+# as latency under memory pressure (srt-build doc/TUNING.md, "rtla does
+# not lock its memory"). Priority 50 beats the Tumbleweed repo's 99.
+rtla_obs=https://download.opensuse.org/repositories/home:/wagi:/branches:/benchmark
+rtla_repo_of() {
+	case "$1" in
+	x86_64)  echo $rtla_obs/openSUSE_Tumbleweed/ ;;
+	aarch64) echo $rtla_obs/openSUSE_Factory/ ;;
+	armv7l)  echo $rtla_obs/openSUSE_Factory_LegacyARM/ ;;
+	esac
+}
+add_repo_of() {
+	[ "$rtla_repo" -eq 1 ] || return 0
+	echo "--add-repo $(rtla_repo_of "$1"),rpm-md,rtla-mlock,50"
 }
 binfmt_of() {
 	case "$1" in
@@ -118,9 +138,12 @@ sudo=()
 run mkdir -p "$outdir/$tag"
 dest=$(cd "$outdir/$tag" 2>/dev/null && pwd || echo "$outdir/$tag")
 
-commit=$(git -C "$srcdir" rev-parse --short HEAD 2>/dev/null || echo unknown)
+# safe.directory: the tree may belong to another user (rsynced, or a
+# checkout run as root), which git otherwise refuses.
+git_src() { git -C "$srcdir" -c safe.directory="$srcdir" "$@"; }
+commit=$(git_src rev-parse --short HEAD 2>/dev/null || echo unknown)
 dirty=""
-[ -n "$(git -C "$srcdir" status --porcelain 2>/dev/null)" ] && dirty=" (uncommitted changes)"
+[ -n "$(git_src status --porcelain 2>/dev/null)" ] && dirty=" (uncommitted changes)"
 
 for a in "${archs[@]}"; do
 	echo "=== $a"
@@ -137,8 +160,9 @@ echo "\$VERSION_ID" > /out/snapshot-$a
 rm -rf $work $work.log
 kiwi-ng --logfile=$work.log system build \\
 	--description /desc \\
-	--set-repo $(repo_of "$a") \\
+	--set-repo $(repo_of "$a") $(add_repo_of "$a") \\
 	--target-dir $work
+rpm --root $work/build/image-root -q rtla > /out/rtla-$a
 mv $work/lava-image.$a-*.tar.xz /out/
 if [ $keep -eq 0 ]; then rm -rf $work $work.log; fi
 EOF
@@ -161,11 +185,11 @@ sha256sum lava-image.*.tar.xz > SHA256SUMS
 {
 	echo "kiwi-lava: $commit$dirty"
 	for a in "${archs[@]}"; do
-		echo "$a: openSUSE Tumbleweed $(cat "snapshot-$a")"
+		echo "$a: openSUSE Tumbleweed $(cat "snapshot-$a"), $(cat "rtla-$a")"
 	done
 	echo "built: $(date -u +%Y-%m-%dT%H:%M:%SZ) on $(hostname)"
 } > BUILDINFO
-rm -f snapshot-*
+rm -f snapshot-* rtla-*
 
 echo
 cat BUILDINFO
