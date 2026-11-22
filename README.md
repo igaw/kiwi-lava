@@ -65,8 +65,7 @@ under stress-ng's memory and io classes the user-space column showed
   a branch of `benchmark/rtla` with
   `rtla-timerlat-Lock-the-memory-of-the-user-space-threads.patch` (the
   posted patch, `Patch0` in the spec). The version follows OBS's
-  kernel-source, the release says `benchmark`, e.g.
-  `rtla-7.3.5-benchmark.26.1`.
+  kernel-source, e.g. `rtla-7.3.5-benchmark.26.1`.
 - Repositories, one per image arch, which `build-images.sh` adds with
   `--add-repo ...,rpm-md,rtla-mlock,50` (zypper priority 50 beats the
   Tumbleweed repo's 99):
@@ -80,7 +79,12 @@ under stress-ng's memory and io classes the user-space column showed
   32-bit ARM Tumbleweed (`ports/armv7hl`) comes from
   openSUSE:Factory:LegacyARM; openSUSE:Factory:ARM has no armv7l any
   more (its armv7l repo is "broken: nothing provides rpm").
-- Check: `BUILDINFO` lists the rtla per arch; it must say `benchmark`.
+- Check: `BUILDINFO` lists the rtla per arch with the OBS project it
+  was built in (its DISTURL); it must say `(home:wagi:branches:benchmark)`.
+  The release string doesn't tell: x86_64 and aarch64 have `benchmark`
+  in it (from the `benchmark` project's config), the armv7l build
+  doesn't (`rtla-7.3.5-26.1.armv7hl`). Published packages of armv7l
+  are in `armv7hl/`.
   `-R` builds with the stock rtla, e.g. for an A/B.
 - Update the patch: osc doesn't run on the maintainer's Fedora host, so
   it runs in a throwaway Tumbleweed container (on nvme.lan, say) that

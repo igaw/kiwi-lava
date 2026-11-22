@@ -27,8 +27,9 @@ patched rtla and its OBS repositories, and lessons. Read it first.
 ./build-images.sh [-e docker] [-o DIR] [-t TAG] [ARCH...]
 ```
 
-Then check `BUILDINFO`: every arch's rtla must be a `benchmark` release
-while the patched rtla is in use. Container without network: see
+Then check `BUILDINFO`: every arch's rtla must say
+`(home:wagi:branches:benchmark)` while the patched rtla is in use (the
+release string doesn't tell: armv7l's has no `benchmark`). Container without network: see
 README "Lessons" (the host's bridge, not the gateway, until proven
 otherwise).
 

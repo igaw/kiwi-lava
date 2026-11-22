@@ -162,7 +162,10 @@ kiwi-ng --logfile=$work.log system build \\
 	--description /desc \\
 	--set-repo $(repo_of "$a") $(add_repo_of "$a") \\
 	--target-dir $work
-rpm --root $work/build/image-root -q rtla > /out/rtla-$a
+# The rtla and the OBS project it was built in (from its DISTURL): the
+# release string doesn't tell, the armv7l build has no "benchmark" in it.
+rpm --root $work/build/image-root -q --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH} %{DISTURL}' rtla |
+	sed -E 's|^([^ ]+) obs://[^/]+/([^/]+)/.*|\1 (\2)|' > /out/rtla-$a
 mv $work/lava-image.$a-*.tar.xz /out/
 if [ $keep -eq 0 ]; then rm -rf $work $work.log; fi
 EOF
